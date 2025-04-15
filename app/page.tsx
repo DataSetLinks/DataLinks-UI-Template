@@ -4,24 +4,21 @@ import { queryAPI } from "@/api/query";
 
 import { generateColumnsBasedOnData } from "@/app/utils";
 import { Footer } from "@/components/footer";
-import { Button } from "@/components/ui/button";
+import { SearchForm } from "@/components/search-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchedFor, setSearchedFor] = useState("");
   const [results, setResults] = useState<Record<string, string>[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSearch = async (searchQuery: string) => {
     setLoading(true);
     setError("");
+    setSearchedFor(searchQuery);
 
     try {
       const response: Record<string, string>[] = await queryAPI(searchQuery);
@@ -46,32 +43,10 @@ export default function SearchPage() {
             <CardDescription>Enter your search query to fetch data from the DataLinks</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="flex w-full max-w-lg mx-auto gap-2 mb-8">
-              <Input
-                type="text"
-                placeholder="Enter search term..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="submit" disabled={loading}>
-                {loading ? (
-                  <span className="flex items-center gap-1">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Searching
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <Search className="h-4 w-4" />
-                    Search
-                  </span>
-                )}
-              </Button>
-            </form>
-
+            <SearchForm handleSearch={handleSearch} loading={loading} />
             {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
-            {results.length > 0 ? (
+            {results && results.length > 0 ? (
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -98,12 +73,12 @@ export default function SearchPage() {
               </div>
             ) : (
               !loading &&
-              searchQuery && (
+              searchedFor && (
                 <div className="text-center text-muted-foreground">No results found. Try a different search term.</div>
               )
             )}
 
-            {!searchQuery && !loading && results.length == 0 && (
+            {!searchedFor && !loading && results.length == 0 && (
               <div className="text-center text-muted-foreground">
                 Enter a search term and click Search to see results.
               </div>
