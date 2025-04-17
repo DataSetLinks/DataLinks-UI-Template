@@ -43,6 +43,30 @@ Paste the token into your `.env.local`.
 
 This flag enables or disables the natural language query adjustment feature in the web app.
 
+If set to `1` you can use natural language query feature.
+
+If set to `0` you can use our custom query system - visit [docs.datalinks.com](https://docs.datalinks.com/) to learn more!
+
+## Prefer not to clone the repo? You can use v0.dev instead
+
+If you'd rather get started without cloning the repository manually, you can open an exact copy of this project directly in v0.dev:
+
+- [v0.dev starter link](https://v0.dev/community/data-links-ui-template-F0AFCpdkNSX)
+
+Click the "Open in v0" button to launch the project.
+
+If you're not signed in yet, simply log in using your Vercel account.
+
+Once you're in, click the "Deploy" button in the top-right corner and follow the instructions to deploy the project to your Vercel account.
+After deployment, please remember to configure your environment variables.
+
+You can do this in one of two ways:
+
+- directly within the v0.dev interface under your project settings, or
+- from your project dashboard on Vercel.
+
+If you run into any issues, don't hesitate to [reach out](mailto:support@datasetlinks.com) - we're here to help!
+
 ## Need Help or Inspiration?
 
 We're here if you need a hand - from setup to deployment.
