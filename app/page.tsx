@@ -1,13 +1,14 @@
 "use client";
 
 import { queryAPI } from "@/api/query";
+import { useRef, useMemo, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { generateColumnsBasedOnData } from "@/app/utils";
 import { Footer } from "@/components/footer";
 import { SearchForm } from "@/components/search-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useMemo, useState } from "react";
 
 export default function SearchPage() {
   const [searchedFor, setSearchedFor] = useState("");
@@ -22,7 +23,6 @@ export default function SearchPage() {
 
     try {
       const response: Record<string, string>[] = await queryAPI(searchQuery);
-
       setResults(response);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -33,6 +33,25 @@ export default function SearchPage() {
   };
 
   const columns = useMemo(() => generateColumnsBasedOnData(results), [results]);
+
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: results.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+    overscan: 10,
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+
+  const renderVirtualRow = (virtualRow: any) => (
+    <TableRow key={virtualRow.index}>
+      {columns.map((column, colIdx) => (
+        <TableCell key={`${colIdx}_${column}`}>{results[virtualRow.index][column]}</TableCell>
+      ))}
+    </TableRow>
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -47,27 +66,30 @@ export default function SearchPage() {
             {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
             {results && results.length > 0 ? (
-              <div className="rounded-md border">
-                <Table>
+              <div ref={parentRef} className="rounded-md border overflow-auto" style={{ maxHeight: 1014 }}>
+                <Table className="table-auto w-full">
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="sticky top-0 z-10 bg-gray-100 font-bold text-gray-800">
                       {columns.map((column, index) => (
-                        <TableHead className="max-w-[200px]" key={`${index}_${column}`}>
+                        <TableHead key={`${index}_${column}`} className=" bg-gray-100 font-bold text-gray-800">
                           {column}
                         </TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {results.map((item, index) => (
-                      <TableRow key={index}>
-                        {columns.map((column, index) => (
-                          <TableCell className="max-w-[200px]" key={`${index}_${column}`}>
-                            {item[column]}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
+                    {virtualRows.length > 0 && <tr key="top-spacer" style={{ height: `${virtualRows[0].start}px` }} />}
+
+                    {virtualRows.map(renderVirtualRow)}
+
+                    {virtualRows.length > 0 && (
+                      <tr
+                        key="bottom-spacer"
+                        style={{
+                          height: `${rowVirtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end}px`,
+                        }}
+                      />
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -78,7 +100,7 @@ export default function SearchPage() {
               )
             )}
 
-            {!searchedFor && !loading && results.length == 0 && (
+            {!searchedFor && !loading && results.length === 0 && (
               <div className="text-center text-muted-foreground">
                 Enter a search term and click Search to see results.
               </div>
