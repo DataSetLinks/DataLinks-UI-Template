@@ -48,7 +48,11 @@ export default function SearchPage() {
   const renderVirtualRow = (virtualRow: any) => (
     <TableRow key={virtualRow.index}>
       {columns.map((column, colIdx) => (
-        <TableCell key={`${colIdx}_${column}`}>{results[virtualRow.index][column]}</TableCell>
+        <TableCell key={`${colIdx}_${column}`}>
+          {Array.isArray(results[virtualRow.index][column])
+            ? (results[virtualRow.index][column] as unknown as string[]).join(", ")
+            : results[virtualRow.index][column]}
+        </TableCell>
       ))}
     </TableRow>
   );
