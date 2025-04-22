@@ -15,6 +15,7 @@ export default function SearchPage() {
   const [results, setResults] = useState<Record<string, string>[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [expandedRows, setExpandedRows] = useState<Record<number, Record<string, boolean>>>({});
 
   const handleSearch = async (searchQuery: string) => {
     setLoading(true);
@@ -32,6 +33,16 @@ export default function SearchPage() {
     }
   };
 
+  const handleExpand = (rowIdx: number, column: string) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [rowIdx]: {
+        ...prev[rowIdx],
+        [column]: !prev[rowIdx]?.[column],
+      },
+    }));
+  };
+
   const columns = useMemo(() => generateColumnsBasedOnData(results), [results]);
 
   const parentRef = useRef<HTMLDivElement>(null);
@@ -47,13 +58,36 @@ export default function SearchPage() {
 
   const renderVirtualRow = (virtualRow: any) => (
     <TableRow key={virtualRow.index}>
-      {columns.map((column, colIdx) => (
-        <TableCell key={`${colIdx}_${column}`}>
-          {Array.isArray(results[virtualRow.index][column])
-            ? (results[virtualRow.index][column] as unknown as string[]).join(", ")
-            : results[virtualRow.index][column]}
-        </TableCell>
-      ))}
+      {columns.map((column, colIdx) => {
+        const cellValue = results[virtualRow.index]?.[column];
+
+        if (Array.isArray(cellValue)) {
+          const isExpanded = expandedRows[virtualRow.index]?.[column];
+          const displayItems = isExpanded ? cellValue : cellValue.slice(0, 10);
+          const displayText = (displayItems as unknown as string[]).join(", ");
+          return (
+            <TableCell key={`${colIdx}_${column}`} className="min-w-[200px] ">
+              <span className="text-xs">{displayText}</span>
+              {cellValue.length > 10 && (
+                <button
+                  title={displayText}
+                  className="ml-2 text-blue-600 underline text-xs"
+                  onClick={() => handleExpand(virtualRow.index, column)}
+                  type="button"
+                >
+                  {isExpanded ? "Collapse" : "Expand"}
+                </button>
+              )}
+            </TableCell>
+          );
+        }
+
+        return (
+          <TableCell key={`${colIdx}_${column}`} className="min-w-[200px] ">
+            {cellValue}
+          </TableCell>
+        );
+      })}
     </TableRow>
   );
 
