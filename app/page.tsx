@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer";
 import { SearchForm } from "@/components/search-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import clsx from "clsx";
 
 export default function SearchPage() {
   const [searchedFor, setSearchedFor] = useState("");
@@ -59,14 +60,20 @@ export default function SearchPage() {
   const renderVirtualRow = (virtualRow: any) => (
     <TableRow key={virtualRow.index}>
       {columns.map((column, colIdx) => {
-        const cellValue = results[virtualRow.index]?.[column];
+        const cellValue = results[virtualRow.index]?.[column] || "";
+
+        const className = clsx("min-w-[200px] ", {
+          "break-word": cellValue.includes(" "),
+          "break-all": !cellValue.includes(" ") || cellValue.startsWith("http"),
+        });
 
         if (Array.isArray(cellValue)) {
           const isExpanded = expandedRows[virtualRow.index]?.[column];
           const displayItems = isExpanded ? cellValue : cellValue.slice(0, 10);
           const displayText = (displayItems as unknown as string[]).join(", ");
+
           return (
-            <TableCell key={`${colIdx}_${column}`} className="min-w-[200px] ">
+            <TableCell key={`${colIdx}_${column}`} className={className}>
               <span className="text-xs">{displayText}</span>
               {cellValue.length > 10 && (
                 <button
@@ -83,7 +90,7 @@ export default function SearchPage() {
         }
 
         return (
-          <TableCell key={`${colIdx}_${column}`} className="min-w-[200px] ">
+          <TableCell key={`${colIdx}_${column}`} className={className}>
             {cellValue}
           </TableCell>
         );
